@@ -88,9 +88,33 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
           default = piWithDefaults;
         };
 
+        checks = {
+          build-pi = pi;
+          build-default-package = pi-default-package;
+          build-default-wrapper = piWithDefaults;
+
+          smoke-default-package-loading = pkgs.runCommand "smoke-default-package-loading" {
+            nativeBuildInputs = [
+              piWithDefaults
+              pkgs.gnugrep
+            ];
+          } ''
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+
+            pi-with-defaults list > list.txt
+            grep -q 'pifiles-default' list.txt
+
+            cp list.txt "$out"
+          '';
+        };
+
         apps.default = {
           type = "app";
           program = "${piWithDefaults}/bin/pi-with-defaults";
+          meta = {
+            description = "Run pinned pi with repo defaults loaded";
+          };
         };
 
         devShells.default = pkgs.mkShell {
