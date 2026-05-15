@@ -25,7 +25,7 @@ packages = data.get("packages", [])
 if not isinstance(packages, list):
     packages = []
 
-# Remove stale entries for this repo package, then add the current one.
+# Remove stale entries for this repo package (and prior subagents source forms), then add current one.
 packages = [
     p for p in packages
     if not (
@@ -34,6 +34,9 @@ packages = [
             p == pkg_path
             or p.endswith("/pi/packages/default")
             or p.endswith("/share/pi-packages/pifiles-default")
+            or p.endswith("/share/pi-packages/pi-subagents")
+            or p == "git:github.com/nicobailon/pi-subagents"
+            or p == "nicobailon/pi-subagents"
         )
     )
 ]

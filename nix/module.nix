@@ -5,18 +5,33 @@ let
 
   packagePath = pkg: "${pkg}${self.lib.packagePathOf pkg}";
 
-  defaultPiPackages =
-    let
-      maybeDefault = self.packages.${pkgs.system}.pi-default-package or null;
-    in
-    lib.optional (maybeDefault != null) maybeDefault;
+  maybeDefault = self.packages.${pkgs.system}.pi-default-package or null;
+  maybeSubagents = self.packages.${pkgs.system}.pi-subagents-package or null;
+  maybeIntercom = self.packages.${pkgs.system}.pi-intercom-package or null;
+  maybeMcpAdapter = self.packages.${pkgs.system}.pi-mcp-adapter-package or null;
+  maybeCustomCompaction = self.packages.${pkgs.system}.pi-custom-compaction-package or null;
+  maybeRewindHook = self.packages.${pkgs.system}.pi-rewind-hook-package or null;
+  maybeBoomerang = self.packages.${pkgs.system}.pi-boomerang-package or null;
+
+  defaultPiPackages = lib.filter (p: p != null) [
+    maybeDefault
+    maybeSubagents
+    maybeIntercom
+    maybeCustomCompaction
+    maybeRewindHook
+    maybeBoomerang
+  ];
 
   allPiPackages = defaultPiPackages ++ cfg.extraPackages;
 
   packageEntries = map packagePath allPiPackages;
+  mcpAdapterEntry = lib.optional (maybeMcpAdapter != null) {
+    source = packagePath maybeMcpAdapter;
+    extensions = [ ];
+  };
 
   baseSettings = {
-    packages = packageEntries;
+    packages = packageEntries ++ mcpAdapterEntry;
   };
 
   mergedSettings = lib.recursiveUpdate baseSettings cfg.settings;

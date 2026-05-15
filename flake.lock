@@ -54,11 +54,113 @@
         "type": "github"
       }
     },
+    "pi-boomerang": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777824081,
+        "narHash": "sha256-qQ2H/m0niMV0WEzdXhh01maTJyUfUod1/EXkHHXcrpM=",
+        "owner": "nicobailon",
+        "repo": "pi-boomerang",
+        "rev": "ea543818f0d3b92bc427e179cfe75d0984553f36",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-boomerang",
+        "type": "github"
+      }
+    },
+    "pi-custom-compaction": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775329889,
+        "narHash": "sha256-86puorbqlhFwggD4QeNO5vM4IxpqOQQ4r+ulHY7hTE4=",
+        "owner": "nicobailon",
+        "repo": "pi-custom-compaction",
+        "rev": "a0e4700badb1c5c1c2dd12eeb250ff067fa67b7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-custom-compaction",
+        "type": "github"
+      }
+    },
+    "pi-intercom": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777791900,
+        "narHash": "sha256-cYh7zsSbDqsq5JpNQbAZFGS/beRN7oh/KuTN3QQZn34=",
+        "owner": "nicobailon",
+        "repo": "pi-intercom",
+        "rev": "5caa4aa1bd060cf0aebbf1a5dfbb1abb6e23e457",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-intercom",
+        "type": "github"
+      }
+    },
+    "pi-mcp-adapter": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778689398,
+        "narHash": "sha256-jW/vlQ4ay3Le8PRlH3UMYJVhfJYFCxY6frPZCIs/osI=",
+        "owner": "nicobailon",
+        "repo": "pi-mcp-adapter",
+        "rev": "8c1a28e7ebb837d5fa03de3a67f217ce994782cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-mcp-adapter",
+        "type": "github"
+      }
+    },
+    "pi-rewind-hook": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777087398,
+        "narHash": "sha256-aDtuZzXVheo+QiVdDDABzEg7UiEyKZirOD9lmnV/o8Q=",
+        "owner": "nicobailon",
+        "repo": "pi-rewind-hook",
+        "rev": "684f79a58fb1c30bb2a9605b573b4adf26a56381",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-rewind-hook",
+        "type": "github"
+      }
+    },
+    "pi-subagents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778813731,
+        "narHash": "sha256-giJ9SUjWz7qAInYZBijPOQSNjdEOtysLCf11rht2Gf8=",
+        "owner": "nicobailon",
+        "repo": "pi-subagents",
+        "rev": "e99bf5b84dc543012e2e4dee2478d6f914a37b27",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-subagents",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "pi-boomerang": "pi-boomerang",
+        "pi-custom-compaction": "pi-custom-compaction",
+        "pi-intercom": "pi-intercom",
+        "pi-mcp-adapter": "pi-mcp-adapter",
+        "pi-rewind-hook": "pi-rewind-hook",
+        "pi-subagents": "pi-subagents"
       }
     },
     "systems": {

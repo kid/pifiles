@@ -6,9 +6,34 @@
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    pi-subagents = {
+      url = "github:nicobailon/pi-subagents";
+      flake = false;
+    };
+    pi-intercom = {
+      url = "github:nicobailon/pi-intercom";
+      flake = false;
+    };
+    pi-mcp-adapter = {
+      url = "github:nicobailon/pi-mcp-adapter";
+      flake = false;
+    };
+    pi-custom-compaction = {
+      url = "github:nicobailon/pi-custom-compaction";
+      flake = false;
+    };
+    pi-rewind-hook = {
+      url = "github:nicobailon/pi-rewind-hook";
+      flake = false;
+    };
+    pi-boomerang = {
+      url = "github:nicobailon/pi-boomerang";
+      flake = false;
+    };
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, pi-subagents, pi-intercom, pi-mcp-adapter, pi-custom-compaction, pi-rewind-hook, pi-boomerang, ... }:
     let
       lib = import ./nix/lib.nix { inherit (nixpkgs) lib; };
       supportedSystems = [
@@ -42,7 +67,58 @@
           src = ./pi/packages/default;
         };
 
-        defaultPiPackagePath = "${pi-default-package}/share/pi-packages/pifiles-default";
+        pi-subagents-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-subagents";
+          version = "0.24.3";
+          src = pi-subagents;
+        };
+
+        pi-intercom-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-intercom";
+          version = "0.6.0";
+          src = pi-intercom;
+        };
+
+        pi-mcp-adapter-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-mcp-adapter";
+          version = "2.6.1";
+          src = pi-mcp-adapter;
+        };
+
+        pi-custom-compaction-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-custom-compaction";
+          version = "0.2.5";
+          src = pi-custom-compaction;
+        };
+
+        pi-rewind-hook-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-rewind-hook";
+          version = "1.8.4";
+          src = pi-rewind-hook;
+        };
+
+        pi-boomerang-package = lib.mkPiPackage {
+          inherit pkgs;
+          pname = "pi-boomerang";
+          version = "0.6.5";
+          src = pi-boomerang;
+        };
+
+        mcpAdapterPackagePath = "${pi-mcp-adapter-package}/share/pi-packages/pi-mcp-adapter";
+
+        defaultPackagePaths = [
+          "${pi-default-package}/share/pi-packages/pifiles-default"
+          "${pi-subagents-package}/share/pi-packages/pi-subagents"
+          "${pi-intercom-package}/share/pi-packages/pi-intercom"
+          "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction"
+          "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook"
+          "${pi-boomerang-package}/share/pi-packages/pi-boomerang"
+        ];
 
         piWithDefaults = pkgs.writeShellApplication {
           name = "pi-with-defaults";
@@ -59,7 +135,8 @@
             python3 -c '
 import json, pathlib, sys
 settings_file = pathlib.Path(sys.argv[1])
-package_path = sys.argv[2]
+default_paths = sys.argv[2:-1]
+mcp_adapter_path = sys.argv[-1]
 if settings_file.exists():
     data = json.loads(settings_file.read_text())
 else:
@@ -67,15 +144,46 @@ else:
 packages = data.get("packages", [])
 if not isinstance(packages, list):
     packages = []
-# Keep non-string/object entries untouched, but remove stale pifiles-default store paths.
-packages = [
-    p for p in packages
-    if not (isinstance(p, str) and p.endswith("/share/pi-packages/pifiles-default"))
-]
-packages.append(package_path)
+# Keep non-string/object entries untouched, but remove stale forms for built-in packages.
+legacy = {
+    "git:github.com/nicobailon/pi-subagents",
+    "nicobailon/pi-subagents",
+    "git:github.com/nicobailon/pi-intercom",
+    "nicobailon/pi-intercom",
+    "git:github.com/nicobailon/pi-mcp-adapter",
+    "nicobailon/pi-mcp-adapter",
+    "git:github.com/nicobailon/pi-custom-compaction",
+    "nicobailon/pi-custom-compaction",
+    "git:github.com/nicobailon/pi-rewind-hook",
+    "nicobailon/pi-rewind-hook",
+    "git:github.com/nicobailon/pi-boomerang",
+    "nicobailon/pi-boomerang",
+}
+suffixes = (
+    "/share/pi-packages/pifiles-default",
+    "/share/pi-packages/pi-subagents",
+    "/share/pi-packages/pi-intercom",
+    "/share/pi-packages/pi-mcp-adapter",
+    "/share/pi-packages/pi-custom-compaction",
+    "/share/pi-packages/pi-rewind-hook",
+    "/share/pi-packages/pi-boomerang",
+)
+def is_stale(entry):
+    if isinstance(entry, str):
+        return entry in legacy or any(entry.endswith(s) for s in suffixes)
+    if isinstance(entry, dict):
+        source = entry.get("source")
+        return isinstance(source, str) and (
+            source in legacy or any(source.endswith(s) for s in suffixes)
+        )
+    return False
+
+packages = [p for p in packages if not is_stale(p)]
+packages.extend(default_paths)
+packages.append({"source": mcp_adapter_path, "extensions": []})
 data["packages"] = packages
 settings_file.write_text(json.dumps(data, indent=2) + "\n")
-' "$settings_file" "${defaultPiPackagePath}"
+' "$settings_file" ${builtins.concatStringsSep " " (map (p: "\"${p}\"") defaultPackagePaths)} "${mcpAdapterPackagePath}"
 
             exec ${pi}/bin/pi "$@"
           '';
@@ -83,7 +191,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
       in
       {
         packages = {
-          inherit pi pi-default-package;
+          inherit pi pi-default-package pi-subagents-package pi-intercom-package pi-mcp-adapter-package pi-custom-compaction-package pi-rewind-hook-package pi-boomerang-package;
 
           default = piWithDefaults;
         };
@@ -91,6 +199,12 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
         checks = {
           build-pi = pi;
           build-default-package = pi-default-package;
+          build-subagents-package = pi-subagents-package;
+          build-intercom-package = pi-intercom-package;
+          build-mcp-adapter-package = pi-mcp-adapter-package;
+          build-custom-compaction-package = pi-custom-compaction-package;
+          build-rewind-hook-package = pi-rewind-hook-package;
+          build-boomerang-package = pi-boomerang-package;
           build-default-wrapper = piWithDefaults;
 
           smoke-default-package-loading = pkgs.runCommand "smoke-default-package-loading" {
@@ -104,6 +218,12 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
 
             pi-with-defaults list > list.txt
             grep -q 'pifiles-default' list.txt
+            grep -q 'pi-subagents' list.txt
+            grep -q 'pi-intercom' list.txt
+            grep -q 'pi-mcp-adapter' list.txt
+            grep -q 'pi-custom-compaction' list.txt
+            grep -q 'pi-rewind-hook' list.txt
+            grep -q 'pi-boomerang' list.txt
 
             cp list.txt "$out"
           '';

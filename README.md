@@ -64,7 +64,7 @@ or define:
 This will:
 
 1. `npm ci`
-2. add this repo's default pi package to `~/.pi/agent/settings.json`
+2. add this repo's default local pi package to `~/.pi/agent/settings.json`
 
 Then run:
 
@@ -87,4 +87,12 @@ It includes starter examples for:
 ## Notes
 
 - Precedence is defaults first, then `programs.pi.extraPackages` (extra packages win).
+- In Nix mode, built-in defaults include flake-pinned local copies of:
+  - `nicobailon/pi-subagents`
+  - `nicobailon/pi-intercom`
+  - `nicobailon/pi-mcp-adapter` (added in filtered mode with `extensions = []`)
+  - `nicobailon/pi-custom-compaction`
+  - `nicobailon/pi-rewind-hook`
+  - `nicobailon/pi-boomerang`
+  (no runtime clone/install).
 - Collision warnings are not implemented yet (v1 keeps this simple).
