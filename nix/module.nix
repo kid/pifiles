@@ -12,6 +12,7 @@ let
   maybeCustomCompaction = self.packages.${pkgs.system}.pi-custom-compaction-package or null;
   maybeRewindHook = self.packages.${pkgs.system}.pi-rewind-hook-package or null;
   maybeBoomerang = self.packages.${pkgs.system}.pi-boomerang-package or null;
+  maybeRpivAskUserQuestion = self.packages.${pkgs.system}.rpiv-ask-user-question-package or null;
 
   defaultPiPackages = lib.filter (p: p != null) [
     maybeDefault
@@ -20,6 +21,7 @@ let
     maybeCustomCompaction
     maybeRewindHook
     maybeBoomerang
+    maybeRpivAskUserQuestion
   ];
 
   allPiPackages = defaultPiPackages ++ cfg.extraPackages;

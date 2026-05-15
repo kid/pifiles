@@ -31,9 +31,13 @@
       url = "github:nicobailon/pi-boomerang";
       flake = false;
     };
+    rpiv-ask-user-question = {
+      url = "github:juicesharp/rpiv-ask-user-question";
+      flake = false;
+    };
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, pi-subagents, pi-intercom, pi-mcp-adapter, pi-custom-compaction, pi-rewind-hook, pi-boomerang, ... }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, pi-subagents, pi-intercom, pi-mcp-adapter, pi-custom-compaction, pi-rewind-hook, pi-boomerang, rpiv-ask-user-question, ... }:
     let
       lib = import ./nix/lib.nix { inherit (nixpkgs) lib; };
       supportedSystems = [
@@ -109,6 +113,33 @@
           src = pi-boomerang;
         };
 
+        rpiv-ask-user-question-package = pkgs.stdenvNoCC.mkDerivation {
+          pname = "rpiv-ask-user-question";
+          version = "0.1.4";
+          src = rpiv-ask-user-question;
+
+          dontBuild = true;
+
+          installPhase = ''
+            runHook preInstall
+
+            pkgRoot="$out/share/pi-packages/rpiv-ask-user-question"
+            mkdir -p "$pkgRoot"
+            cp -R . "$pkgRoot"
+
+            find "$pkgRoot" -type f -name '*.ts' -exec \
+              sed -i \
+                -e 's|@mariozechner/pi-coding-agent|@earendil-works/pi-coding-agent|g' \
+                -e 's|@mariozechner/pi-tui|@earendil-works/pi-tui|g' \
+                -e 's|@sinclair/typebox|typebox|g' \
+                {} +
+
+            runHook postInstall
+          '';
+
+          passthru.piPackagePath = "/share/pi-packages/rpiv-ask-user-question";
+        };
+
         mcpAdapterPackagePath = "${pi-mcp-adapter-package}/share/pi-packages/pi-mcp-adapter";
 
         defaultPackagePaths = [
@@ -118,6 +149,7 @@
           "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction"
           "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook"
           "${pi-boomerang-package}/share/pi-packages/pi-boomerang"
+          "${rpiv-ask-user-question-package}/share/pi-packages/rpiv-ask-user-question"
         ];
 
         piWithDefaults = pkgs.writeShellApplication {
@@ -158,6 +190,8 @@ legacy = {
     "nicobailon/pi-rewind-hook",
     "git:github.com/nicobailon/pi-boomerang",
     "nicobailon/pi-boomerang",
+    "git:github.com/juicesharp/rpiv-ask-user-question",
+    "@juicesharp/rpiv-ask-user-question",
 }
 suffixes = (
     "/share/pi-packages/pifiles-default",
@@ -167,6 +201,7 @@ suffixes = (
     "/share/pi-packages/pi-custom-compaction",
     "/share/pi-packages/pi-rewind-hook",
     "/share/pi-packages/pi-boomerang",
+    "/share/pi-packages/rpiv-ask-user-question",
 )
 def is_stale(entry):
     if isinstance(entry, str):
@@ -191,7 +226,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
       in
       {
         packages = {
-          inherit pi pi-default-package pi-subagents-package pi-intercom-package pi-mcp-adapter-package pi-custom-compaction-package pi-rewind-hook-package pi-boomerang-package;
+          inherit pi pi-default-package pi-subagents-package pi-intercom-package pi-mcp-adapter-package pi-custom-compaction-package pi-rewind-hook-package pi-boomerang-package rpiv-ask-user-question-package;
 
           default = piWithDefaults;
         };
@@ -205,6 +240,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
           build-custom-compaction-package = pi-custom-compaction-package;
           build-rewind-hook-package = pi-rewind-hook-package;
           build-boomerang-package = pi-boomerang-package;
+          build-rpiv-ask-user-question-package = rpiv-ask-user-question-package;
           build-default-wrapper = piWithDefaults;
 
           smoke-default-package-loading = pkgs.runCommand "smoke-default-package-loading" {
@@ -224,6 +260,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
             grep -q 'pi-custom-compaction' list.txt
             grep -q 'pi-rewind-hook' list.txt
             grep -q 'pi-boomerang' list.txt
+            grep -q 'rpiv-ask-user-question' list.txt
 
             cp list.txt "$out"
           '';

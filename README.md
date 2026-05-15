@@ -94,5 +94,6 @@ It includes starter examples for:
   - `nicobailon/pi-custom-compaction`
   - `nicobailon/pi-rewind-hook`
   - `nicobailon/pi-boomerang`
+  - `@juicesharp/rpiv-ask-user-question` (import-rewritten for current `@earendil-works/*` package names)
   (no runtime clone/install).
 - Collision warnings are not implemented yet (v1 keeps this simple).

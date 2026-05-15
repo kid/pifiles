@@ -160,7 +160,24 @@
         "pi-intercom": "pi-intercom",
         "pi-mcp-adapter": "pi-mcp-adapter",
         "pi-rewind-hook": "pi-rewind-hook",
-        "pi-subagents": "pi-subagents"
+        "pi-subagents": "pi-subagents",
+        "rpiv-ask-user-question": "rpiv-ask-user-question"
+      }
+    },
+    "rpiv-ask-user-question": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778303761,
+        "narHash": "sha256-HbvJnDwfWjN5CeStSsIUe+znCOUrdjGmHuxCzG+Wdlg=",
+        "owner": "juicesharp",
+        "repo": "rpiv-ask-user-question",
+        "rev": "8dfafc868a412e3cc63f06773b0fbc8c066d5f9f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "juicesharp",
+        "repo": "rpiv-ask-user-question",
+        "type": "github"
       }
     },
     "systems": {
