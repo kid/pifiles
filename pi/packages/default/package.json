@@ -1,0 +1,10 @@
+{
+  "name": "pifiles-default",
+  "version": "0.1.0",
+  "private": true,
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"],
+    "prompts": ["./prompts"]
+  }
+}

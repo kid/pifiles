@@ -1,0 +1,14 @@
+{
+  "name": "pifiles",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone installer for pinned pi config",
+  "scripts": {
+    "install:standalone": "./scripts/install-standalone.sh",
+    "link:config": "./scripts/link-config.sh",
+    "verify": "./scripts/verify.sh"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.74.0"
+  }
+}
