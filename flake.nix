@@ -195,94 +195,68 @@
           passthru.piPackagePath = "/share/pi-packages/rpiv-ask-user-question";
         };
 
-        mcpAdapterPackagePath = "${pi-mcp-adapter-package}/share/pi-packages/pi-mcp-adapter";
+        pifilesDefaultRoot = "${pi-default-package}/share/pi-packages/pifiles-default";
+        piSubagentsRoot = "${pi-subagents-package}/share/pi-packages/pi-subagents";
+        piIntercomRoot = "${pi-intercom-package}/share/pi-packages/pi-intercom";
+        piCustomCompactionRoot = "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction";
+        piRewindHookRoot = "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook";
+        piBoomerangRoot = "${pi-boomerang-package}/share/pi-packages/pi-boomerang";
+        piMemoryRoot = "${pi-memory-package}/share/pi-packages/pi-memory";
+        rpivAskUserQuestionRoot = "${rpiv-ask-user-question-package}/share/pi-packages/rpiv-ask-user-question";
 
-        defaultPackagePaths = [
-          "${pi-default-package}/share/pi-packages/pifiles-default"
-          "${pi-subagents-package}/share/pi-packages/pi-subagents"
-          "${pi-intercom-package}/share/pi-packages/pi-intercom"
-          "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction"
-          "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook"
-          "${pi-boomerang-package}/share/pi-packages/pi-boomerang"
-          "${pi-memory-package}/share/pi-packages/pi-memory"
-          "${rpiv-ask-user-question-package}/share/pi-packages/rpiv-ask-user-question"
+        extensionPaths = [
+          "${pifilesDefaultRoot}/extensions/hello.ts"
+          "${piSubagentsRoot}/src/extension/index.ts"
+          "${piIntercomRoot}/index.ts"
+          "${piCustomCompactionRoot}/index.ts"
+          "${piRewindHookRoot}/index.ts"
+          "${piBoomerangRoot}/index.ts"
+          "${piMemoryRoot}/index.ts"
+          "${rpivAskUserQuestionRoot}/index.ts"
         ];
+
+        skillPaths = [
+          "${pifilesDefaultRoot}/skills"
+          "${piSubagentsRoot}/skills"
+          "${piIntercomRoot}/skills"
+        ];
+
+        promptTemplatePaths = [
+          "${pifilesDefaultRoot}/prompts"
+          "${piSubagentsRoot}/prompts"
+        ];
+
+        extensionArgs = builtins.concatStringsSep " " (map (p: "-e \"${p}\"") extensionPaths);
+        skillArgs = builtins.concatStringsSep " " (map (p: "--skill \"${p}\"") skillPaths);
+        promptTemplateArgs = builtins.concatStringsSep " " (map (p: "--prompt-template \"${p}\"") promptTemplatePaths);
 
         piWithDefaults = pkgs.writeShellApplication {
           name = "pi-with-defaults";
           runtimeInputs = [
             pi
-            pkgs.python3
             qmd-package
           ];
           text = ''
-            agent_dir="''${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
-            settings_file="$agent_dir/settings.json"
+            export PI_OFFLINE="''${PI_OFFLINE:-1}"
 
-            mkdir -p "$agent_dir"
+            case "''${1:-}" in
+              install|remove|uninstall|update|list|config)
+                echo "pi package-management commands are disabled in nix-run mode." >&2
+                echo "This wrapper loads pinned resources explicitly and does not use settings-installed packages." >&2
+                exit 2
+                ;;
+            esac
 
-            python3 -c '
-import json, pathlib, sys
-settings_file = pathlib.Path(sys.argv[1])
-default_paths = sys.argv[2:-1]
-mcp_adapter_path = sys.argv[-1]
-if settings_file.exists():
-    data = json.loads(settings_file.read_text())
-else:
-    data = {}
-packages = data.get("packages", [])
-if not isinstance(packages, list):
-    packages = []
-# Keep non-string/object entries untouched, but remove stale forms for built-in packages.
-legacy = {
-    "git:github.com/nicobailon/pi-subagents",
-    "nicobailon/pi-subagents",
-    "git:github.com/nicobailon/pi-intercom",
-    "nicobailon/pi-intercom",
-    "git:github.com/nicobailon/pi-mcp-adapter",
-    "nicobailon/pi-mcp-adapter",
-    "git:github.com/nicobailon/pi-custom-compaction",
-    "nicobailon/pi-custom-compaction",
-    "git:github.com/nicobailon/pi-rewind-hook",
-    "nicobailon/pi-rewind-hook",
-    "git:github.com/nicobailon/pi-boomerang",
-    "nicobailon/pi-boomerang",
-    "git:github.com/jayzeng/pi-memory",
-    "jayzeng/pi-memory",
-    "npm:pi-memory",
-    "pi-memory",
-    "git:github.com/juicesharp/rpiv-ask-user-question",
-    "@juicesharp/rpiv-ask-user-question",
-}
-suffixes = (
-    "/share/pi-packages/pifiles-default",
-    "/share/pi-packages/pi-subagents",
-    "/share/pi-packages/pi-intercom",
-    "/share/pi-packages/pi-mcp-adapter",
-    "/share/pi-packages/pi-custom-compaction",
-    "/share/pi-packages/pi-rewind-hook",
-    "/share/pi-packages/pi-boomerang",
-    "/share/pi-packages/pi-memory",
-    "/share/pi-packages/rpiv-ask-user-question",
-)
-def is_stale(entry):
-    if isinstance(entry, str):
-        return entry in legacy or any(entry.endswith(s) for s in suffixes)
-    if isinstance(entry, dict):
-        source = entry.get("source")
-        return isinstance(source, str) and (
-            source in legacy or any(source.endswith(s) for s in suffixes)
-        )
-    return False
-
-packages = [p for p in packages if not is_stale(p)]
-packages.extend(default_paths)
-packages.append({"source": mcp_adapter_path, "extensions": []})
-data["packages"] = packages
-settings_file.write_text(json.dumps(data, indent=2) + "\n")
-' "$settings_file" ${builtins.concatStringsSep " " (map (p: "\"${p}\"") defaultPackagePaths)} "${mcpAdapterPackagePath}"
-
-            exec ${pi}/bin/pi "$@"
+            exec ${pi}/bin/pi \
+              --no-extensions \
+              --no-skills \
+              --no-prompt-templates \
+              --no-themes \
+              --no-context-files \
+              ${extensionArgs} \
+              ${skillArgs} \
+              ${promptTemplateArgs} \
+              "$@"
           '';
         };
       in
@@ -309,27 +283,64 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
 
           smoke-default-package-loading = pkgs.runCommand "smoke-default-package-loading" {
             nativeBuildInputs = [
-              piWithDefaults
-              pkgs.gnugrep
+              pkgs.nodejs
               qmd-package
             ];
           } ''
             export HOME="$TMPDIR/home"
             mkdir -p "$HOME"
 
-            pi-with-defaults list > list.txt
-            grep -q 'pifiles-default' list.txt
-            grep -q 'pi-subagents' list.txt
-            grep -q 'pi-intercom' list.txt
-            grep -q 'pi-mcp-adapter' list.txt
-            grep -q 'pi-custom-compaction' list.txt
-            grep -q 'pi-rewind-hook' list.txt
-            grep -q 'pi-boomerang' list.txt
-            grep -q 'pi-memory' list.txt
-            grep -q 'rpiv-ask-user-question' list.txt
-            qmd --version >/dev/null
+            node --input-type=module <<'EOF' > result.txt
+            import { DefaultResourceLoader } from 'file://${pi}/lib/node_modules/@earendil-works/pi-coding-agent/dist/core/resource-loader.js';
 
-            cp list.txt "$out"
+            const loader = new DefaultResourceLoader({
+              cwd: process.cwd(),
+              agentDir: process.env.TMPDIR + '/agent',
+              noExtensions: true,
+              noSkills: true,
+              noPromptTemplates: true,
+              noThemes: true,
+              noContextFiles: true,
+              additionalExtensionPaths: ${builtins.toJSON extensionPaths},
+              additionalSkillPaths: ${builtins.toJSON skillPaths},
+              additionalPromptTemplatePaths: ${builtins.toJSON promptTemplatePaths},
+            });
+
+            await loader.reload();
+
+            const skillNames = loader.getSkills().skills.map((s) => s.name).sort();
+            const promptNames = loader.getPrompts().prompts.map((p) => p.name).sort();
+            const extensionCount = loader.getExtensions().extensions.length;
+            const extensionErrors = loader.getExtensions().errors.length;
+
+            const requiredSkills = ['pi-intercom', 'pi-subagents', 'pifiles-example'];
+            const requiredPrompts = [
+              'gather-context-and-clarify',
+              'parallel-cleanup',
+              'parallel-context-build',
+              'parallel-handoff-plan',
+              'parallel-research',
+              'parallel-review',
+              'pifiles-review',
+              'review-loop',
+            ];
+
+            for (const name of requiredSkills) {
+              if (!skillNames.includes(name)) throw new Error('missing skill: ' + name);
+            }
+            for (const name of requiredPrompts) {
+              if (!promptNames.includes(name)) throw new Error('missing prompt: ' + name);
+            }
+            if (extensionCount !== 8) throw new Error('expected 8 extensions, got ' + extensionCount);
+            if (extensionErrors !== 0) throw new Error('expected 0 extension errors, got ' + extensionErrors);
+
+            console.log(JSON.stringify({ skillNames, promptNames, extensionCount }, null, 2));
+            EOF
+
+            qmd --version >/dev/null
+            test ! -e "$HOME/.pi/agent/settings.json"
+
+            cp result.txt "$out"
           '';
         };
 
