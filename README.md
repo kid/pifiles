@@ -64,7 +64,9 @@ or define:
 This will:
 
 1. `npm ci`
-2. add this repo's default local pi package to `~/.pi/agent/settings.json`
+2. patch `pi-memory` for current `@earendil-works/*` package names
+3. add this repo's default local pi packages to `~/.pi/agent/settings.json`
+4. install local `qmd` at `./node_modules/.bin/qmd`
 
 Then run:
 
@@ -94,6 +96,9 @@ It includes starter examples for:
   - `nicobailon/pi-custom-compaction`
   - `nicobailon/pi-rewind-hook`
   - `nicobailon/pi-boomerang`
+  - `jayzeng/pi-memory` (import-rewritten for current `@earendil-works/*` package names)
   - `@juicesharp/rpiv-ask-user-question` (import-rewritten for current `@earendil-works/*` package names)
+  - `qmd` (`@tobilu/qmd`, available on PATH for `pi-memory` search)
   (no runtime clone/install).
+- Standalone mode also pins `pi-memory` and `qmd` in `package-lock.json`; `npx pi` inherits the local `qmd` binary from `node_modules/.bin`.
 - Collision warnings are not implemented yet (v1 keeps this simple).

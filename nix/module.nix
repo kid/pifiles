@@ -12,6 +12,8 @@ let
   maybeCustomCompaction = self.packages.${pkgs.system}.pi-custom-compaction-package or null;
   maybeRewindHook = self.packages.${pkgs.system}.pi-rewind-hook-package or null;
   maybeBoomerang = self.packages.${pkgs.system}.pi-boomerang-package or null;
+  maybeMemory = self.packages.${pkgs.system}.pi-memory-package or null;
+  maybeQmd = self.packages.${pkgs.system}.qmd-package or null;
   maybeRpivAskUserQuestion = self.packages.${pkgs.system}.rpiv-ask-user-question-package or null;
 
   defaultPiPackages = lib.filter (p: p != null) [
@@ -21,6 +23,7 @@ let
     maybeCustomCompaction
     maybeRewindHook
     maybeBoomerang
+    maybeMemory
     maybeRpivAskUserQuestion
   ];
 
@@ -71,7 +74,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    home.packages = [ cfg.package ] ++ lib.optional (maybeQmd != null) maybeQmd;
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON mergedSettings;
   };
