@@ -101,7 +101,7 @@ It includes starter examples for:
 - In Home Manager / settings-managed Nix mode, built-in defaults include flake-pinned local copies of:
   - `nicobailon/pi-subagents`
   - `nicobailon/pi-intercom`
-  - `nicobailon/pi-mcp-adapter` (added in filtered mode with `extensions = []`)
+  - `nicobailon/pi-mcp-adapter`
   - `nicobailon/pi-custom-compaction`
   - `nicobailon/pi-rewind-hook`
   - `nicobailon/pi-boomerang`
