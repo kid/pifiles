@@ -118,6 +118,22 @@
         "type": "github"
       }
     },
+    "pi-memory": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777950733,
+        "narHash": "sha256-xxlTEEl7PPlKzG2pin+5LBgtHSqjtotyfOBJ9RDgi9A=",
+        "owner": "jayzeng",
+        "repo": "pi-memory",
+        "rev": "dc144f6a5583499e17cf561105864bf28583764c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jayzeng",
+        "repo": "pi-memory",
+        "type": "github"
+      }
+    },
     "pi-rewind-hook": {
       "flake": false,
       "locked": {
@@ -159,6 +175,7 @@
         "pi-custom-compaction": "pi-custom-compaction",
         "pi-intercom": "pi-intercom",
         "pi-mcp-adapter": "pi-mcp-adapter",
+        "pi-memory": "pi-memory",
         "pi-rewind-hook": "pi-rewind-hook",
         "pi-subagents": "pi-subagents",
         "rpiv-ask-user-question": "rpiv-ask-user-question"

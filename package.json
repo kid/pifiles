@@ -4,11 +4,14 @@
   "private": true,
   "description": "Standalone installer for pinned pi config",
   "scripts": {
+    "postinstall": "node ./scripts/patch-pi-memory.mjs",
     "install:standalone": "./scripts/install-standalone.sh",
     "link:config": "./scripts/link-config.sh",
     "verify": "./scripts/verify.sh"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "0.74.0"
+    "@earendil-works/pi-coding-agent": "0.74.0",
+    "@tobilu/qmd": "2.1.0",
+    "pi-memory": "0.3.9"
   }
 }

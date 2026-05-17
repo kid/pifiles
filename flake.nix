@@ -31,13 +31,17 @@
       url = "github:nicobailon/pi-boomerang";
       flake = false;
     };
+    pi-memory = {
+      url = "github:jayzeng/pi-memory";
+      flake = false;
+    };
     rpiv-ask-user-question = {
       url = "github:juicesharp/rpiv-ask-user-question";
       flake = false;
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, pi-subagents, pi-intercom, pi-mcp-adapter, pi-custom-compaction, pi-rewind-hook, pi-boomerang, rpiv-ask-user-question, ... }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, home-manager, pi-subagents, pi-intercom, pi-mcp-adapter, pi-custom-compaction, pi-rewind-hook, pi-boomerang, pi-memory, rpiv-ask-user-question, ... }:
     let
       lib = import ./nix/lib.nix { inherit (nixpkgs) lib; };
       supportedSystems = [
@@ -113,6 +117,57 @@
           src = pi-boomerang;
         };
 
+        pi-memory-package = pkgs.stdenvNoCC.mkDerivation {
+          pname = "pi-memory";
+          version = "0.3.9";
+          src = pi-memory;
+
+          dontBuild = true;
+
+          installPhase = ''
+            runHook preInstall
+
+            pkgRoot="$out/share/pi-packages/pi-memory"
+            mkdir -p "$pkgRoot"
+            cp -R . "$pkgRoot"
+
+            find "$pkgRoot" -type f -name '*.ts' -exec \
+              sed -i \
+                -e 's|@mariozechner/pi-ai|@earendil-works/pi-ai|g' \
+                -e 's|@mariozechner/pi-coding-agent|@earendil-works/pi-coding-agent|g' \
+                -e 's|@sinclair/typebox|typebox|g' \
+                {} +
+
+            runHook postInstall
+          '';
+
+          passthru.piPackagePath = "/share/pi-packages/pi-memory";
+        };
+
+        qmd-package = pkgs.buildNpmPackage {
+          pname = "qmd";
+          version = "2.1.0";
+
+          src = pkgs.fetchurl {
+            url = "https://registry.npmjs.org/@tobilu/qmd/-/qmd-2.1.0.tgz";
+            hash = "sha256-TxsADFudqjb89dBSKNeWb9ffh2B69XL8ozYFl/ZChuY=";
+          };
+
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          npmDepsHash = "sha256-4V2yG6+lQc8dSgMckYIaS7O66Zr3IVG437nkNhawcl8=";
+          dontNpmBuild = true;
+
+          postPatch = ''
+            cp ${./nix/qmd-package-lock.json} package-lock.json
+          '';
+
+          postInstall = ''
+            rm -f "$out/bin/qmd"
+            makeWrapper ${pkgs.nodejs}/bin/node "$out/bin/qmd" \
+              --add-flags "$out/lib/node_modules/@tobilu/qmd/dist/cli/qmd.js"
+          '';
+        };
+
         rpiv-ask-user-question-package = pkgs.stdenvNoCC.mkDerivation {
           pname = "rpiv-ask-user-question";
           version = "0.1.4";
@@ -149,6 +204,7 @@
           "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction"
           "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook"
           "${pi-boomerang-package}/share/pi-packages/pi-boomerang"
+          "${pi-memory-package}/share/pi-packages/pi-memory"
           "${rpiv-ask-user-question-package}/share/pi-packages/rpiv-ask-user-question"
         ];
 
@@ -157,6 +213,7 @@
           runtimeInputs = [
             pi
             pkgs.python3
+            qmd-package
           ];
           text = ''
             agent_dir="''${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
@@ -190,6 +247,10 @@ legacy = {
     "nicobailon/pi-rewind-hook",
     "git:github.com/nicobailon/pi-boomerang",
     "nicobailon/pi-boomerang",
+    "git:github.com/jayzeng/pi-memory",
+    "jayzeng/pi-memory",
+    "npm:pi-memory",
+    "pi-memory",
     "git:github.com/juicesharp/rpiv-ask-user-question",
     "@juicesharp/rpiv-ask-user-question",
 }
@@ -201,6 +262,7 @@ suffixes = (
     "/share/pi-packages/pi-custom-compaction",
     "/share/pi-packages/pi-rewind-hook",
     "/share/pi-packages/pi-boomerang",
+    "/share/pi-packages/pi-memory",
     "/share/pi-packages/rpiv-ask-user-question",
 )
 def is_stale(entry):
@@ -226,7 +288,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
       in
       {
         packages = {
-          inherit pi pi-default-package pi-subagents-package pi-intercom-package pi-mcp-adapter-package pi-custom-compaction-package pi-rewind-hook-package pi-boomerang-package rpiv-ask-user-question-package;
+          inherit pi pi-default-package pi-subagents-package pi-intercom-package pi-mcp-adapter-package pi-custom-compaction-package pi-rewind-hook-package pi-boomerang-package pi-memory-package qmd-package rpiv-ask-user-question-package;
 
           default = piWithDefaults;
         };
@@ -240,6 +302,8 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
           build-custom-compaction-package = pi-custom-compaction-package;
           build-rewind-hook-package = pi-rewind-hook-package;
           build-boomerang-package = pi-boomerang-package;
+          build-memory-package = pi-memory-package;
+          build-qmd-package = qmd-package;
           build-rpiv-ask-user-question-package = rpiv-ask-user-question-package;
           build-default-wrapper = piWithDefaults;
 
@@ -247,6 +311,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
             nativeBuildInputs = [
               piWithDefaults
               pkgs.gnugrep
+              qmd-package
             ];
           } ''
             export HOME="$TMPDIR/home"
@@ -260,7 +325,9 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
             grep -q 'pi-custom-compaction' list.txt
             grep -q 'pi-rewind-hook' list.txt
             grep -q 'pi-boomerang' list.txt
+            grep -q 'pi-memory' list.txt
             grep -q 'rpiv-ask-user-question' list.txt
+            qmd --version >/dev/null
 
             cp list.txt "$out"
           '';
@@ -278,6 +345,7 @@ settings_file.write_text(json.dumps(data, indent=2) + "\n")
           packages = [
             pi
             pkgs.nodejs
+            qmd-package
           ];
         };
       });
