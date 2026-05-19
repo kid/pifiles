@@ -29,14 +29,10 @@ let
 
   allPiPackages = defaultPiPackages ++ cfg.extraPackages;
 
-  packageEntries = map packagePath allPiPackages;
-  mcpAdapterEntry = lib.optional (maybeMcpAdapter != null) {
-    source = packagePath maybeMcpAdapter;
-    extensions = [ ];
-  };
+  packageEntries = map packagePath (allPiPackages ++ lib.optional (maybeMcpAdapter != null) maybeMcpAdapter);
 
   baseSettings = {
-    packages = packageEntries ++ mcpAdapterEntry;
+    packages = packageEntries;
   };
 
   mergedSettings = lib.recursiveUpdate baseSettings cfg.settings;

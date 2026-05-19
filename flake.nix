@@ -89,11 +89,30 @@
           src = pi-intercom;
         };
 
-        pi-mcp-adapter-package = lib.mkPiPackage {
-          inherit pkgs;
+        pi-mcp-adapter-package = pkgs.buildNpmPackage {
           pname = "pi-mcp-adapter";
           version = "2.6.1";
           src = pi-mcp-adapter;
+
+          npmDepsHash = "sha256-kQ101vspbdzTYhwt58K+Snbry9WdfHvSNSIsLRW2J4k=";
+          dontNpmBuild = true;
+
+          postPatch = ''
+            cp ${./nix/pi-mcp-adapter-package-lock.json} package-lock.json
+          '';
+
+          installPhase = ''
+            runHook preInstall
+
+            pkgRoot="$out/share/pi-packages/pi-mcp-adapter"
+            mkdir -p "$pkgRoot"
+            cp -R . "$pkgRoot"
+            cp -R node_modules "$pkgRoot/node_modules"
+
+            runHook postInstall
+          '';
+
+          passthru.piPackagePath = "/share/pi-packages/pi-mcp-adapter";
         };
 
         pi-custom-compaction-package = lib.mkPiPackage {
@@ -198,6 +217,7 @@
         pifilesDefaultRoot = "${pi-default-package}/share/pi-packages/pifiles-default";
         piSubagentsRoot = "${pi-subagents-package}/share/pi-packages/pi-subagents";
         piIntercomRoot = "${pi-intercom-package}/share/pi-packages/pi-intercom";
+        piMcpAdapterRoot = "${pi-mcp-adapter-package}/share/pi-packages/pi-mcp-adapter";
         piCustomCompactionRoot = "${pi-custom-compaction-package}/share/pi-packages/pi-custom-compaction";
         piRewindHookRoot = "${pi-rewind-hook-package}/share/pi-packages/pi-rewind-hook";
         piBoomerangRoot = "${pi-boomerang-package}/share/pi-packages/pi-boomerang";
@@ -208,6 +228,7 @@
           "${pifilesDefaultRoot}/extensions/hello.ts"
           "${piSubagentsRoot}/src/extension/index.ts"
           "${piIntercomRoot}/index.ts"
+          "${piMcpAdapterRoot}/index.ts"
           "${piCustomCompactionRoot}/index.ts"
           "${piRewindHookRoot}/index.ts"
           "${piBoomerangRoot}/index.ts"
@@ -331,7 +352,7 @@
             for (const name of requiredPrompts) {
               if (!promptNames.includes(name)) throw new Error('missing prompt: ' + name);
             }
-            if (extensionCount !== 8) throw new Error('expected 8 extensions, got ' + extensionCount);
+            if (extensionCount !== 9) throw new Error('expected 9 extensions, got ' + extensionCount);
             if (extensionErrors !== 0) throw new Error('expected 0 extension errors, got ' + extensionErrors);
 
             console.log(JSON.stringify({ skillNames, promptNames, extensionCount }, null, 2));
