@@ -24,7 +24,7 @@ final: prev: {
       final.pi-custom-compaction
       final.pi-rewind-hook
       final.pi-boomerang
-      final.pi-memory
+      # final.pi-memory
       final.rpiv-ask-user-question
     ];
   };
