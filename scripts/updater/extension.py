@@ -95,10 +95,7 @@ def update_extension(
     return True
 
 
-def main_for(package_dir: Path) -> None:
-    """Entry-point helper for per-package ``update.py`` scripts."""
-    track = "release"
-    if len(sys.argv) > 1 and sys.argv[1] in {"release", "main"}:
-        track = sys.argv[1]
+def main_for(package_dir: Path, *, track: str = "release") -> None:
+    """Entry-point helper called by ``scripts/update-extension.py``."""
     changed = update_extension(package_dir, track=track)
     sys.exit(0 if changed or True else 1)

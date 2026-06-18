@@ -23,14 +23,12 @@ def discover() -> list[dict[str, str]]:
     selected = {p for p in os.environ.get("PACKAGES", "").split() if p}
     entries: list[dict[str, str]] = []
     for pkg_dir in sorted(PKGS_DIR.iterdir()):
-        if not (pkg_dir / "update.py").exists():
-            continue
         if not (pkg_dir / "hashes.json").exists():
             continue
         name = pkg_dir.name
         if selected and name not in selected:
             continue
-        entries.append({"name": name, "path": str(pkg_dir.relative_to(ROOT))})
+        entries.append({"name": name})
     return entries
 
 

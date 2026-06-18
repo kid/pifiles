@@ -69,10 +69,10 @@ jobs:
             git checkout -B "$branch" origin/main
           fi
 
-      - name: Run update.py
+      - name: Run update-extension.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./${{ matrix.path }}/update.py
+        run: ./scripts/update-extension.py ${{ matrix.name }}
 
       - name: Detect changes
         id: changes
@@ -90,8 +90,9 @@ jobs:
       - name: Commit & push
         if: steps.changes.outputs.changed == 'true'
         run: |
-          version="$(python3 -c "import json; print(json.load(open('${{ matrix.path }}/hashes.json'))['version'])")"
-          git add ${{ matrix.path }}
+          pkg_path="nix/pkgs/by-name/${{ matrix.name }}"
+          version="$(python3 -c "import json; print(json.load(open('$pkg_path/hashes.json'))['version'])")"
+          git add "$pkg_path"
           git commit -m "${{ matrix.name }}: update to $version"
           git push --force-with-lease origin "update/${{ matrix.name }}"
 
@@ -100,12 +101,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version="$(python3 -c "import json; print(json.load(open('${{ matrix.path }}/hashes.json'))['version'])")"
+          pkg_path="nix/pkgs/by-name/${{ matrix.name }}"
+          version="$(python3 -c "import json; print(json.load(open('$pkg_path/hashes.json'))['version'])")"
           if ! gh pr view "update/${{ matrix.name }}" >/dev/null 2>&1; then
             gh pr create \
               --base main \
               --head "update/${{ matrix.name }}" \
               --title "${{ matrix.name }}: update to $version" \
-              --body "Automated bump of \`${{ matrix.name }}\` to \`$version\` via \`./${{ matrix.path }}/update.py\`." \
+              --body "Automated bump of \`${{ matrix.name }}\` to \`$version\` via \`scripts/update-extension.py\`." \
               --label dependencies --label automated || true
           fi
