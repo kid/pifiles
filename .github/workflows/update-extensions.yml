@@ -1,0 +1,113 @@
+name: update-extensions
+
+on:
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated list of extension names (empty = all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      has-updates: ${{ steps.discover.outputs.has-updates }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: discover
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: ./scripts/discover.py
+
+  update:
+    needs: discover
+    if: needs.discover.outputs.has-updates == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v19
+
+      - name: Configure Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare update branch
+        run: |
+          branch="update/${{ matrix.name }}"
+          git fetch origin main
+          if git fetch origin "$branch" 2>/dev/null; then
+            git checkout -B "$branch" "origin/$branch" || git checkout -B "$branch"
+            git rebase origin/main || { git rebase --abort; git checkout -B "$branch" origin/main; }
+          else
+            git checkout -B "$branch" origin/main
+          fi
+
+      - name: Run update-extension.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/update-extension.py ${{ matrix.name }}
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify build
+        if: steps.changes.outputs.changed == 'true'
+        run: nix build --no-link --print-build-logs .#${{ matrix.name }}
+
+      - name: Commit & push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          pkg_path="nix/pkgs/by-name/${{ matrix.name }}"
+          version="$(python3 -c "import json; print(json.load(open('$pkg_path/hashes.json'))['version'])")"
+          git add "$pkg_path"
+          git commit -m "${{ matrix.name }}: update to $version"
+          git push --force-with-lease origin "update/${{ matrix.name }}"
+
+      - name: Open PR
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pkg_path="nix/pkgs/by-name/${{ matrix.name }}"
+          version="$(python3 -c "import json; print(json.load(open('$pkg_path/hashes.json'))['version'])")"
+          if ! gh pr view "update/${{ matrix.name }}" >/dev/null 2>&1; then
+            gh pr create \
+              --base main \
+              --head "update/${{ matrix.name }}" \
+              --title "${{ matrix.name }}: update to $version" \
+              --body "Automated bump of \`${{ matrix.name }}\` to \`$version\` via \`scripts/update-extension.py\`." \
+              --label dependencies --label automated || true
+          fi

@@ -1,115 +1,100 @@
 # pifiles
 
-Reproducible pi config repo with:
+Nix-first pi setup with pinned extensions.
 
-- **Nix flake** (authoritative pinning)
-- **Home Manager module** (`programs.pi.*`)
-- **Standalone mode** (Node/npm provided by user)
+## Requirements covered
 
-## What is pinned
+- Flake uses **flake-parts**
+- Formatting uses **treefmt**
+- Extensions are exposed as Nix packages via a **pkgs-by-name** layout
+- Flake exposes an **overlay** containing those packages
+- Default app is a `pi` wrapper that passes built extension package roots on CLI (`-e ...`)
+- No non-Nix/standalone support
+- No user-managed/custom extension loading in wrapper mode
 
-- Nix: `flake.lock` + `flake.nix` package pinning
-- Standalone: `package-lock.json` for npm resolution
-- Current pi CLI pin: `0.74.0`
+## Structure
 
-## Nix usage
+- `flake.nix` — flake-parts entrypoint + treefmt config
+- `nix/overlay.nix` — overlay exporting all packages
+- extension source pinning lives in each `nix/pkgs/by-name/<name>/package.nix`
+- `nix/pkgs/by-name/<name>/package.nix` — package definitions (pkgs-by-name pattern), extensions use `buildNpmPackage` and expose a package root with `package.json` and `node_modules/`
+- `nix/pkgs/by-name/*/package-lock.json` — vendored npm lockfiles where required
 
-### Use the package directly
+## Upstream packages
+
+`pi` and `qmd` are consumed directly from
+[numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) (as a flake
+input) and are not rebuilt here. Binaries are served from
+`https://cache.numtide.com`. To bump them, run `nix flake update llm-agents`.
+
+llm-agents.nix structures each package as a directory under `packages/<name>/`
+containing `package.nix` + `hashes.json` + `update.py`. `package.nix` reads
+version and hashes from `hashes.json`; `update.py` (a small wrapper over the
+shared `scripts/updater/` library) fetches the latest version from npm or
+GitHub, computes the new hashes, and rewrites `hashes.json`. A scheduled
+GitHub Action discovers updatable packages, runs each `update.py`, and opens
+one PR per package.
+
+This repo follows the same pattern for the local extensions:
+
+- `nix/pkgs/by-name/<pkg>/hashes.json` — pins `owner`, `repo`, `version`,
+  `rev`, `narHash`, `npmDepsHash`.
+- `nix/pkgs/by-name/<pkg>/package.nix` — reads those values via
+  `lib.importJSON ./hashes.json`.
+- `nix/pkgs/by-name/<pkg>/update.py` — one-liner delegating to
+  `scripts/updater/extension.py:main_for`.
+- `scripts/updater/` — shared library: GitHub release lookup, `nix flake
+prefetch` for narHashes, lockfile regeneration via
+  `npm install --package-lock-only --lockfile-version=1` (with backfilled
+  integrity for nested deps that ship without it), `npmDepsHash` computation
+  via FOD-mismatch parsing.
+- `scripts/discover.py` — emits the CI matrix.
+- `.github/workflows/update-extensions.yml` — daily cron + manual dispatch;
+  one matrix job per extension; opens (or rebases) `update/<pkg>` PRs.
+
+To bump a single extension locally:
+
+```bash
+GITHUB_TOKEN=$(gh auth token) ./nix/pkgs/by-name/pi-subagents/update.py
+nix build .#pi-subagents
+```
+
+## Locally packaged extensions
+
+- `pifiles-default`
+- `pi-subagents`
+- `pi-intercom`
+- `pi-mcp-adapter`
+- `pi-custom-compaction`
+- `pi-rewind-hook`
+- `pi-boomerang`
+- `pi-memory`
+- `rpiv-ask-user-question`
+- `pi-with-extensions` (default; combines upstream `pi` + `qmd` with the
+  extensions above)
+
+## Usage
+
+Run the wrapper:
 
 ```bash
 nix run .
 ```
 
-`nix run .` is isolated from your normal Pi packages and local resources.
+Format repo:
 
-- It passes the repo's pinned extensions, skills, and prompts explicitly on the command line.
-- It disables normal discovery of extensions, skills, prompts, themes, and context files.
-- It does not generate or mutate `settings.json` at runtime.
-- It still allows ordinary global settings such as model/provider selection.
+```bash
+nix fmt
+```
 
-### Home Manager module
+Use overlay in another flake (also pulls in `pi`/`qmd` from `llm-agents.nix`):
 
 ```nix
 {
-  imports = [ inputs.pifiles.homeManagerModules.default ];
+  inputs.pifiles.url = "github:you/pifiles";
 
-  programs.pi = {
-    enable = true;
-
-    # Optional (defaults to this flake's pinned package)
-    # package = inputs.pifiles.packages.${pkgs.system}.pi;
-
-    # Add extra pi packages (Nix derivations only)
-    extraPackages = [
-      # inputs.some-pi-packages.packages.${pkgs.system}.default
-    ];
-
-    # Optional settings merged into ~/.pi/agent/settings.json
-    settings = {
-      # model = "...";
-    };
+  outputs = { self, nixpkgs, pifiles, ... }: {
+    overlays.default = pifiles.overlays.default;
   };
 }
 ```
-
-### Nix pi-package contract
-
-For `programs.pi.extraPackages`, each package should expose a pi package root at:
-
-- `$out/share/pi-packages/<name>`
-
-or define:
-
-- `passthru.piPackagePath = "/share/pi-packages/<name>"`
-
-## Standalone usage
-
-```bash
-./scripts/install-standalone.sh
-```
-
-This will:
-
-1. `npm ci`
-2. patch `pi-memory` for current `@earendil-works/*` package names
-3. add this repo's default local pi packages to `~/.pi/agent/settings.json`
-4. install local `qmd` at `./node_modules/.bin/qmd`
-
-Then run:
-
-```bash
-npx pi
-```
-
-## Repo default resources
-
-Default pi package lives at:
-
-- `pi/packages/default`
-
-It includes starter examples for:
-
-- extensions (verify with `/pifiles-ping`)
-- skills (example command: `/skill:pifiles-example`)
-- prompts (example command: `/pifiles-review`)
-
-## Notes
-
-- `nix run .` is intentionally isolated from global/project package discovery and does not merge in global extensions, skills, prompts, themes, or context files.
-- Home Manager mode is different: it manages `~/.pi/agent/settings.json` on purpose.
-- Precedence is defaults first, then `programs.pi.extraPackages` (extra packages win).
-- In Home Manager / settings-managed Nix mode, built-in defaults include flake-pinned local copies of:
-  - `nicobailon/pi-subagents`
-  - `nicobailon/pi-intercom`
-  - `nicobailon/pi-mcp-adapter`
-  - `nicobailon/pi-custom-compaction`
-  - `nicobailon/pi-rewind-hook`
-  - `nicobailon/pi-boomerang`
-  - `jayzeng/pi-memory` (import-rewritten for current `@earendil-works/*` package names)
-  - `@juicesharp/rpiv-ask-user-question` (import-rewritten for current `@earendil-works/*` package names)
-  - `qmd` (`@tobilu/qmd`, available on PATH for `pi-memory` search)
-  (no runtime clone/install).
-- Standalone mode also pins `pi-memory` and `qmd` in `package-lock.json`; `npx pi` inherits the local `qmd` binary from `node_modules/.bin`.
-- Standalone mode edits `~/.pi/agent/settings.json`; `nix run .` does not.
-- The `nix run .` wrapper defaults `PI_OFFLINE=1` to avoid startup network activity unless you explicitly override it.
-- Because `nix run .` loads resources explicitly instead of installing packages into settings, `pi list` reflects your normal configured packages, not the repo-pinned `nix run` resource set.
