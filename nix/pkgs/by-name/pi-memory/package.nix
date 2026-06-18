@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-memory";
-  version = "0.3.9";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "jayzeng";
-    repo = "pi-memory";
-    rev = "dc144f6a5583499e17cf561105864bf28583764c";
-    narHash = "sha256-xxlTEEl7PPlKzG2pin+5LBgtHSqjtotyfOBJ9RDgi9A=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-dgo6/de2lbY3Iktf/lUyPkWH5NevRMB59SyjCG4xOnQ=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''
@@ -29,13 +35,6 @@ buildNpmPackage {
     if [ -d node_modules ]; then
       cp -R node_modules/. "$pkgRoot/node_modules"
     fi
-
-    find "$pkgRoot" -type f -name '*.ts' -exec \
-      sed -i \
-        -e 's|@mariozechner/pi-ai|@earendil-works/pi-ai|g' \
-        -e 's|@mariozechner/pi-coding-agent|@earendil-works/pi-coding-agent|g' \
-        -e 's|@sinclair/typebox|typebox|g' \
-        {} +
 
     runHook postInstall
   '';

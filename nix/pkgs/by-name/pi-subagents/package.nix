@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-subagents";
-  version = "0.24.3";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "nicobailon";
-    repo = "pi-subagents";
-    rev = "e99bf5b84dc543012e2e4dee2478d6f914a37b27";
-    narHash = "sha256-giJ9SUjWz7qAInYZBijPOQSNjdEOtysLCf11rht2Gf8=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-hwpaATdncPlomOeKNtg3bky01Pzou+HD2VuAmD9o6QI=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''

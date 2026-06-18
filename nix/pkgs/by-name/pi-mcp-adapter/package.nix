@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-mcp-adapter";
-  version = "2.6.1";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "nicobailon";
-    repo = "pi-mcp-adapter";
-    rev = "8c1a28e7ebb837d5fa03de3a67f217ce994782cc";
-    narHash = "sha256-jW/vlQ4ay3Le8PRlH3UMYJVhfJYFCxY6frPZCIs/osI=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-kQ101vspbdzTYhwt58K+Snbry9WdfHvSNSIsLRW2J4k=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''
@@ -24,8 +30,11 @@ buildNpmPackage {
     pkgRoot="$out/share/pi-packages/pi-mcp-adapter"
     mkdir -p "$pkgRoot"
     cp -R . "$pkgRoot"
+
     mkdir -p "$pkgRoot/node_modules"
-    cp -R node_modules/. "$pkgRoot/node_modules"
+    if [ -d node_modules ]; then
+      cp -R node_modules/. "$pkgRoot/node_modules"
+    fi
 
     runHook postInstall
   '';

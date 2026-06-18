@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-rewind-hook";
-  version = "1.8.4";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "nicobailon";
-    repo = "pi-rewind-hook";
-    rev = "684f79a58fb1c30bb2a9605b573b4adf26a56381";
-    narHash = "sha256-aDtuZzXVheo+QiVdDDABzEg7UiEyKZirOD9lmnV/o8Q=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-9sSTowIK+OvQRYNA+gQDPV6wQo1nZIbfuVee8kBkPZw=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''

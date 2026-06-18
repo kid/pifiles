@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-custom-compaction";
-  version = "0.2.5";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "nicobailon";
-    repo = "pi-custom-compaction";
-    rev = "a0e4700badb1c5c1c2dd12eeb250ff067fa67b7e";
-    narHash = "sha256-86puorbqlhFwggD4QeNO5vM4IxpqOQQ4r+ulHY7hTE4=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-MycDAK5nHPlLjHCDnwst+ogWkCGRSw4FTnsBbwGU/Mc=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''

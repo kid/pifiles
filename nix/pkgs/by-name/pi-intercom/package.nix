@@ -1,17 +1,23 @@
-{ buildNpmPackage }:
+{ buildNpmPackage, lib }:
 
+let
+  hashes = lib.importJSON ./hashes.json;
+in
 buildNpmPackage {
   pname = "pi-intercom";
-  version = "0.6.0";
+  version = hashes.version;
+
   src = builtins.fetchTree {
     type = "github";
-    owner = "nicobailon";
-    repo = "pi-intercom";
-    rev = "5caa4aa1bd060cf0aebbf1a5dfbb1abb6e23e457";
-    narHash = "sha256-cYh7zsSbDqsq5JpNQbAZFGS/beRN7oh/KuTN3QQZn34=";
+    inherit (hashes)
+      owner
+      repo
+      rev
+      narHash
+      ;
   };
 
-  npmDepsHash = "sha256-YhEyowXNFda+Y+gKLYCejCOub1NElOa3m4mC+D4Q+B8=";
+  inherit (hashes) npmDepsHash;
   dontNpmBuild = true;
 
   postPatch = ''

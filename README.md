@@ -32,10 +32,32 @@ containing `package.nix` + `hashes.json` + `update.py`. `package.nix` reads
 version and hashes from `hashes.json`; `update.py` (a small wrapper over the
 shared `scripts/updater/` library) fetches the latest version from npm or
 GitHub, computes the new hashes, and rewrites `hashes.json`. A scheduled
-GitHub Action (`.github/workflows/update.yml` + `update-flake.yml`) discovers
-updatable packages, runs each `update.py`, and opens a PR per package. We may
-adopt the same pattern for the local extensions below (`hashes.json` +
-`update.py`) if we want hands-off bumps; for now they remain pinned by hand.
+GitHub Action discovers updatable packages, runs each `update.py`, and opens
+one PR per package.
+
+This repo follows the same pattern for the local extensions:
+
+- `nix/pkgs/by-name/<pkg>/hashes.json` — pins `owner`, `repo`, `version`,
+  `rev`, `narHash`, `npmDepsHash`.
+- `nix/pkgs/by-name/<pkg>/package.nix` — reads those values via
+  `lib.importJSON ./hashes.json`.
+- `nix/pkgs/by-name/<pkg>/update.py` — one-liner delegating to
+  `scripts/updater/extension.py:main_for`.
+- `scripts/updater/` — shared library: GitHub release lookup, `nix flake
+prefetch` for narHashes, lockfile regeneration via
+  `npm install --package-lock-only --lockfile-version=1` (with backfilled
+  integrity for nested deps that ship without it), `npmDepsHash` computation
+  via FOD-mismatch parsing.
+- `scripts/discover.py` — emits the CI matrix.
+- `.github/workflows/update-extensions.yml` — daily cron + manual dispatch;
+  one matrix job per extension; opens (or rebases) `update/<pkg>` PRs.
+
+To bump a single extension locally:
+
+```bash
+GITHUB_TOKEN=$(gh auth token) ./nix/pkgs/by-name/pi-subagents/update.py
+nix build .#pi-subagents
+```
 
 ## Locally packaged extensions
 
