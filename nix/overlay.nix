@@ -8,6 +8,10 @@ in
   pi = upstream.pi;
   qmd = upstream.qmd;
 
+  # Shared builder for configured `pi` wrappers (used by pi-with-extensions
+  # and by the home-manager / NixOS modules).
+  mkPi = final.callPackage ./lib/mk-pi.nix { };
+
   # Pi extensions packaged locally (not yet in llm-agents.nix)
   pifiles-default = final.callPackage ./pkgs/by-name/pifiles-default/package.nix { };
   pi-subagents = final.callPackage ./pkgs/by-name/pi-subagents/package.nix { };
@@ -28,7 +32,7 @@ in
       final.pi-intercom
       final.pi-mcp-adapter
       final.pi-custom-compaction
-      final.pi-rewind-hook
+      # final.pi-rewind-hook
       final.pi-boomerang
       # final.pi-memory
       final.rpiv-ask-user-question

@@ -1,49 +1,15 @@
 {
-  writeShellApplication,
-  lib,
+  mkPi,
   pi,
   qmd,
   extensionPackages ? [ ],
 }:
-let
-  extensionArgs = lib.concatStringsSep " \\\n      " (
-    map (
-      pkg:
-      let
-        extensionDir =
-          if pkg ? extensionDir then
-            pkg.extensionDir
-          else if pkg ? passthru && pkg.passthru ? extensionDir then
-            pkg.passthru.extensionDir
-          else
-            throw "missing extensionDir passthru on ${pkg.pname or "unknown package"}";
-      in
-      "-e \"${pkg}${extensionDir}\""
-    ) extensionPackages
-  );
-in
-writeShellApplication {
+# Pre-configured pi: upstream pi + qmd with a locked-down set of baked-in
+# extensions. Built on the shared `mkPi` wrapper builder.
+mkPi {
+  inherit pi qmd;
   name = "pi-with-extensions";
-  runtimeInputs = [
-    pi
-    qmd
-  ];
-
-  text = ''
-    export PI_OFFLINE="''${PI_OFFLINE:-1}"
-
-    for arg in "$@"; do
-      case "$arg" in
-        -e|--extension|--extensions)
-          echo "Custom extensions are disabled in this Nix wrapper." >&2
-          exit 2
-          ;;
-      esac
-    done
-
-    exec ${pi}/bin/pi \
-      --no-extensions \
-      ${extensionArgs} \
-      "$@"
-  '';
+  extensions = extensionPackages;
+  noExtensions = true;
+  rejectUserExtensionFlags = true;
 }

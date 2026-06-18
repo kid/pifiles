@@ -17,8 +17,6 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
 
@@ -29,6 +27,24 @@
       flake = {
         overlays.default = import ./nix/overlay.nix {
           llm-agents = inputs.llm-agents;
+        };
+
+        # Declarative pi configuration (extensions / system prompt / skills).
+        # Apply `overlays.default` to your pkgs so `pkgs.pi` and the extension
+        # packages are available to these modules.
+        homeManagerModules = rec {
+          pi = ./nix/modules/home-manager.nix;
+          default = pi;
+        };
+
+        nixosModules = rec {
+          pi = ./nix/modules/nixos.nix;
+          default = pi;
+        };
+
+        darwinModules = rec {
+          pi = ./nix/modules/darwin.nix;
+          default = pi;
         };
       };
 
@@ -77,6 +93,10 @@
               pkgs.pi-with-extensions
               config.treefmt.build.wrapper
             ];
+          };
+
+          checks.pi-module = pkgs.callPackage ./nix/checks/module-test.nix {
+            modulePath = ./nix/modules/pi-shared.nix;
           };
 
           formatter = config.treefmt.build.wrapper;
