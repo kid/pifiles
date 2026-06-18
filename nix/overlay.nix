@@ -1,6 +1,14 @@
-final: prev: {
-  pi = final.callPackage ./pkgs/by-name/pi/package.nix { };
+{ llm-agents }:
+final: prev:
+let
+  upstream = llm-agents.packages.${final.stdenv.hostPlatform.system};
+in
+{
+  # Provided by numtide/llm-agents.nix (auto-updated upstream)
+  pi = upstream.pi;
+  qmd = upstream.qmd;
 
+  # Pi extensions packaged locally (not yet in llm-agents.nix)
   pifiles-default = final.callPackage ./pkgs/by-name/pifiles-default/package.nix { };
   pi-subagents = final.callPackage ./pkgs/by-name/pi-subagents/package.nix { };
   pi-intercom = final.callPackage ./pkgs/by-name/pi-intercom/package.nix { };
@@ -10,8 +18,6 @@ final: prev: {
   pi-boomerang = final.callPackage ./pkgs/by-name/pi-boomerang/package.nix { };
   pi-memory = final.callPackage ./pkgs/by-name/pi-memory/package.nix { };
   rpiv-ask-user-question = final.callPackage ./pkgs/by-name/rpiv-ask-user-question/package.nix { };
-
-  qmd = final.callPackage ./pkgs/by-name/qmd/package.nix { };
 
   pi-with-extensions = final.callPackage ./pkgs/by-name/pi-with-extensions/package.nix {
     pi = final.pi;

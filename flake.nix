@@ -6,6 +6,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
 
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -23,7 +27,9 @@
       ];
 
       flake = {
-        overlays.default = import ./nix/overlay.nix;
+        overlays.default = import ./nix/overlay.nix {
+          llm-agents = inputs.llm-agents;
+        };
       };
 
       perSystem =
@@ -33,7 +39,9 @@
           ...
         }:
         let
-          overlay = import ./nix/overlay.nix;
+          overlay = import ./nix/overlay.nix {
+            llm-agents = inputs.llm-agents;
+          };
           pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = [ overlay ];
