@@ -15,7 +15,7 @@ let
         _module.args.pkgs = pkgs;
         programs.pi = {
           enable = true;
-          extensions = [ pkgs.pi-subagents ];
+          extensions = [ pkgs.piExtensions.pi-subagents ];
           packages = [ "pi-skills" ];
           systemPrompt = "Test system prompt.";
           appendSystemPrompt = "Be concise.";

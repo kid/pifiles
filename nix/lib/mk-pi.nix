@@ -32,17 +32,12 @@
   noPromptTemplates ? false,
   noThemes ? false,
 
-  # Reject user-supplied -e/--extension at runtime (preserves the historic
-  # pi-with-extensions behaviour of a locked-down extension set).
-  rejectUserExtensionFlags ? false,
-
   extraArgs ? [ ], # appended verbatim (e.g. --provider, --model)
 }:
 let
   inherit (lib)
     optional
     optionals
-    optionalString
     concatMap
     concatStringsSep
     escapeShellArg
@@ -138,24 +133,12 @@ let
     ++ map escapeShellArg extraArgs;
 
   argLines = concatStringsSep "\n" (map (t: "  " + t) tokens);
-
-  guard = optionalString rejectUserExtensionFlags ''
-    for arg in "$@"; do
-      case "$arg" in
-        -e | --extension | --extensions)
-          echo "Custom extensions are disabled in this wrapper." >&2
-          exit 2
-          ;;
-      esac
-    done
-  '';
 in
 writeShellApplication {
   inherit name;
   runtimeInputs = [ pi ] ++ optional (qmd != null) qmd;
   text = ''
     export PI_OFFLINE="''${PI_OFFLINE:-1}"
-    ${guard}
     args=(
     ${argLines}
     )

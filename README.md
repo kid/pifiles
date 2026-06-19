@@ -6,24 +6,36 @@ Nix-first pi setup with pinned extensions.
 
 - Flake uses **flake-parts**
 - Formatting uses **treefmt**
-- Extensions are exposed as Nix packages via a **pkgs-by-name** layout
-- Flake exposes an **overlay** containing those packages
+- Extensions are exposed under a single **`piExtensions`** namespace (à la
+  `pkgs.vimPlugins`)
+- The **overlay** only exposes what the modules need: `pi`, `qmd`, `mkPi`, and
+  `piExtensions`
+- `pi-with-extensions` is a **flake package only** (not in the overlay)
 - Default app is a `pi` wrapper that passes built extension package roots on CLI (`-e ...`)
 - No non-Nix/standalone support
 - No user-managed/custom extension loading in wrapper mode
 
 ## Structure
 
-- `flake.nix` — flake-parts entrypoint + treefmt config
-- `nix/overlay.nix` — overlay exporting all packages (incl. `mkPi`)
+- `flake.nix` — flake-parts entrypoint + treefmt config; builds the flake-only
+  `pi-with-extensions` package and re-exports each extension flatly
+- `nix/overlays/` — overlay directory (`default.nix`), imported as
+  `import ./nix/overlays`. Exposes `pi`, `qmd`, `mkPi`, and the `piExtensions`
+  namespace (nothing else). Extensions are **auto-discovered** from the
+  directories under `nix/pkgs/by-name/` — no per-name listing.
+- the flake-only pre-configured `pi-with-extensions` is defined inline in
+  `flake.nix` (via `pkgs.mkPi`), so `by-name/` contains extensions only
 - `nix/lib/mk-pi.nix` — shared builder that wraps a base `pi` with baked-in CLI
   flags (extensions/skills/prompts/themes/system prompt). Used by both
-  `pi-with-extensions` and the home-manager / NixOS modules so they share one
-  code path.
+  `pi-with-extensions` and the home-manager / NixOS / nix-darwin modules so they
+  share one code path.
 - `nix/modules/` — `pi-shared.nix` (options) + `home-manager.nix` / `nixos.nix`
+  / `darwin.nix`
 - `nix/checks/module-test.nix` — `nix flake check` test for the module/builder
-- extension source pinning lives in each `nix/pkgs/by-name/<name>/package.nix`
-- `nix/pkgs/by-name/<name>/package.nix` — package definitions (pkgs-by-name pattern), extensions use `buildNpmPackage` and expose a package root with `package.json` and `node_modules/`
+- `nix/pkgs/by-name/<name>/package.nix` — one directory per extension
+  (extensions only); each uses `buildNpmPackage` and exposes a package root with
+  `package.json` and `node_modules/`. Adding a directory here automatically adds
+  it to `piExtensions` (and the flake packages) — no other edits required.
 - `nix/pkgs/by-name/*/package-lock.json` — vendored npm lockfiles where required
 
 ## Upstream packages
@@ -67,17 +79,21 @@ nix build .#pi-subagents
 
 ## Locally packaged extensions
 
-- `pifiles-default`
-- `pi-subagents`
-- `pi-intercom`
-- `pi-mcp-adapter`
-- `pi-custom-compaction`
-- `pi-rewind-hook`
-- `pi-boomerang`
-- `pi-memory`
-- `rpiv-ask-user-question`
-- `pi-with-extensions` (default; combines upstream `pi` + `qmd` with the
-  extensions above)
+Grouped under `pkgs.piExtensions` (overlay) and re-exported as flat flake
+packages:
+
+- `piExtensions.pifiles-default`
+- `piExtensions.pi-subagents`
+- `piExtensions.pi-intercom`
+- `piExtensions.pi-mcp-adapter`
+- `piExtensions.pi-custom-compaction`
+- `piExtensions.pi-rewind-hook`
+- `piExtensions.pi-boomerang`
+- `piExtensions.pi-memory`
+- `piExtensions.rpiv-ask-user-question`
+
+Plus the flake-only `pi-with-extensions` (default package; combines upstream
+`pi` + `qmd` with a baked-in set of the extensions above).
 
 ## Home Manager / NixOS / nix-darwin module
 
@@ -106,7 +122,7 @@ only thing installed is the wrapper — nothing is written to `~/.pi/agent` or
   programs.pi = {
     enable = true;
     package = pkgs.pi; # base package providing bin/pi
-    extensions = [ pkgs.pi-subagents pkgs.pi-intercom ]; # -> -e <path>
+    extensions = [ pkgs.piExtensions.pi-subagents pkgs.piExtensions.pi-intercom ]; # -> -e <path>
     packages = [ "pi-skills" ]; # npm/git sources -> -e <name>
 
     systemPrompt = "You are a focused, concise engineer."; # --system-prompt
@@ -149,7 +165,7 @@ only thing installed is the wrapper — nothing is written to `~/.pi/agent` or
   programs.pi = {
     enable = true;
     package = pkgs.pi;
-    extensions = [ pkgs.pi-subagents ];
+    extensions = [ pkgs.piExtensions.pi-subagents ];
     systemPrompt = "You are a careful systems engineer.";
     extraArgs = [ "--provider" "anthropic" ];
   };
@@ -197,7 +213,9 @@ Format repo:
 nix fmt
 ```
 
-Use overlay in another flake (also pulls in `pi`/`qmd` from `llm-agents.nix`):
+Use overlay in another flake (also pulls in `pi`/`qmd` from `llm-agents.nix`).
+The overlay adds `pkgs.pi`, `pkgs.qmd`, `pkgs.mkPi`, and the
+`pkgs.piExtensions.*` namespace:
 
 ```nix
 {
@@ -205,6 +223,10 @@ Use overlay in another flake (also pulls in `pi`/`qmd` from `llm-agents.nix`):
 
   outputs = { self, nixpkgs, pifiles, ... }: {
     overlays.default = pifiles.overlays.default;
+    # e.g. pkgs.piExtensions.pi-subagents, pkgs.mkPi { ... }
   };
 }
 ```
+
+`pi-with-extensions` is not part of the overlay; consume it from the flake
+packages output (`pifiles.packages.<system>.pi-with-extensions`).
