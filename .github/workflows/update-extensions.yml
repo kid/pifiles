@@ -21,7 +21,7 @@ jobs:
       matrix: ${{ steps.discover.outputs.matrix }}
       has-updates: ${{ steps.discover.outputs.has-updates }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: discover
         env:
           PACKAGES: ${{ github.event.inputs.packages }}
@@ -38,7 +38,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
