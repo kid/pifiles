@@ -46,7 +46,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v19
 
       - name: Configure Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v7
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
