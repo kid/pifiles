@@ -41,11 +41,11 @@ GitHub-sourced extension the standard set of files is:
 Then:
 
 1. Add the extension to the `extensions = with pkgs.piExtensions; [ ... ]` list
-   in `flake.nix` (inside `pi-with-extensions`).
+   in `flake.nix` (inside `pi-config`).
 2. List it under "Locally packaged extensions" in `README.md`.
 3. `git add nix/pkgs/by-name/<name>/` **before** evaluating the overlay — the
    `by-name` auto-discovery reads tracked files only.
-4. Run `nix build .#<name>` and `nix build .#pi-with-extensions`, then
+4. Run `nix build .#<name>` and `nix build .#pi-config`, then
    `nix flake check`.
 
 No edits to `scripts/discover.py` or the CI workflow are needed — the daily
