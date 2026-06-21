@@ -91,6 +91,7 @@ packages:
 - `piExtensions.pi-boomerang`
 - `piExtensions.pi-memory`
 - `piExtensions.rpiv-ask-user-question`
+- `piExtensions.pi-web-access`
 
 Plus the flake-only `pi-with-extensions` (default package; combines upstream
 `pi` + `qmd` with a baked-in set of the extensions above).
