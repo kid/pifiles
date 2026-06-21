@@ -7,7 +7,7 @@
 
 # Build a `pi` wrapper that bakes configuration in as CLI flags (no
 # settings.json). Shared by the home-manager / NixOS module and by the
-# repo's pre-configured `pi-with-extensions` package.
+# repo's pre-configured `pi-config` package.
 {
   # Base package providing `bin/pi`.
   pi,

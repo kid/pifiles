@@ -5,7 +5,7 @@ let
   upstream = llm-agents.packages.${final.stdenv.hostPlatform.system};
 
   # Auto-discover extension packages: every package directory under
-  # ./pkgs/by-name. That folder holds extensions only (pi-with-extensions lives
+  # ./pkgs/by-name. That folder holds extensions only (pi-config lives
   # outside it, as a flake-only package), so no per-name listing is needed.
   byNameDir = ../pkgs/by-name;
   extensionNames = lib.attrNames (
@@ -21,7 +21,7 @@ in
 
   # Shared builder for configured `pi` wrappers. Consumed by the
   # home-manager / NixOS / nix-darwin modules and by the (flake-only)
-  # pi-with-extensions package.
+  # pi-config package.
   mkPi = final.callPackage ../lib/mk-pi.nix { };
 
   # Pi extensions packaged locally (not yet in llm-agents.nix), grouped under a

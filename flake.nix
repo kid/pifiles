@@ -27,7 +27,7 @@
       flake = {
         # The overlay only exposes what the modules need: `pi`, `qmd`, the
         # `mkPi` builder, and the `piExtensions` namespace. The pre-configured
-        # `pi-with-extensions` is intentionally NOT in the overlay; it is a
+        # `pi-config` is intentionally NOT in the overlay; it is a
         # flake package only (see perSystem below).
         overlays.default = import ./nix/overlays {
           llm-agents = inputs.llm-agents;
@@ -67,12 +67,13 @@
             overlays = [ overlay ];
           };
 
-          # Pre-configured pi (upstream pi + qmd with a locked-down set of
-          # baked-in extensions), built here against the overlaid pkgs rather
-          # than in the overlay. Uses the shared `mkPi` builder.
-          pi-with-extensions = pkgs.mkPi {
+          # Pre-configured pi (upstream pi + qmd + agents + a locked-down
+          # set of baked-in extensions), built here against the overlaid pkgs
+          # rather than in the overlay. Uses the shared `mkPi` builder.
+          pi-config = pkgs.mkPi {
             inherit (pkgs) pi qmd;
-            name = "pi-with-extensions";
+            name = "pi-config";
+            agents = ./nix/agents.md;
             extensions = with pkgs.piExtensions; [
               pifiles-default
               pi-subagents
@@ -93,19 +94,19 @@
         {
           packages = {
             inherit (pkgs) pi qmd;
-            inherit pi-with-extensions;
-            default = pi-with-extensions;
+            inherit pi-config;
+            default = pi-config;
           }
           // extensionPackages;
 
           apps.default = {
             type = "app";
-            program = "${pi-with-extensions}/bin/pi-with-extensions";
+            program = "${pi-config}/bin/pi-config";
           };
 
           devShells.default = pkgs.mkShell {
             packages = [
-              pi-with-extensions
+              pi-config
               config.treefmt.build.wrapper
             ];
           };

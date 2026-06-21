@@ -10,7 +10,7 @@ Nix-first pi setup with pinned extensions.
   `pkgs.vimPlugins`)
 - The **overlay** only exposes what the modules need: `pi`, `qmd`, `mkPi`, and
   `piExtensions`
-- `pi-with-extensions` is a **flake package only** (not in the overlay)
+- `pi-config` is a **flake package only** (not in the overlay)
 - Default app is a `pi` wrapper that passes built extension package roots on CLI (`-e ...`)
 - No non-Nix/standalone support
 - No user-managed/custom extension loading in wrapper mode
@@ -18,16 +18,16 @@ Nix-first pi setup with pinned extensions.
 ## Structure
 
 - `flake.nix` — flake-parts entrypoint + treefmt config; builds the flake-only
-  `pi-with-extensions` package and re-exports each extension flatly
+  `pi-config` package and re-exports each extension flatly
 - `nix/overlays/` — overlay directory (`default.nix`), imported as
   `import ./nix/overlays`. Exposes `pi`, `qmd`, `mkPi`, and the `piExtensions`
   namespace (nothing else). Extensions are **auto-discovered** from the
   directories under `nix/pkgs/by-name/` — no per-name listing.
-- the flake-only pre-configured `pi-with-extensions` is defined inline in
+- the flake-only pre-configured `pi-config` is defined inline in
   `flake.nix` (via `pkgs.mkPi`), so `by-name/` contains extensions only
 - `nix/lib/mk-pi.nix` — shared builder that wraps a base `pi` with baked-in CLI
   flags (extensions/skills/prompts/themes/system prompt). Used by both
-  `pi-with-extensions` and the home-manager / NixOS / nix-darwin modules so they
+  `pi-config` and the home-manager / NixOS / nix-darwin modules so they
   share one code path.
 - `nix/modules/` — `pi-shared.nix` (options) + `home-manager.nix` / `nixos.nix`
   / `darwin.nix`
@@ -93,7 +93,7 @@ packages:
 - `piExtensions.rpiv-ask-user-question`
 - `piExtensions.pi-web-access`
 
-Plus the flake-only `pi-with-extensions` (default package; combines upstream
+Plus the flake-only `pi-config` (default package; combines upstream
 `pi` + `qmd` with a baked-in set of the extensions above).
 
 ## Home Manager / NixOS / nix-darwin module
@@ -229,5 +229,5 @@ The overlay adds `pkgs.pi`, `pkgs.qmd`, `pkgs.mkPi`, and the
 }
 ```
 
-`pi-with-extensions` is not part of the overlay; consume it from the flake
-packages output (`pifiles.packages.<system>.pi-with-extensions`).
+`pi-config` is not part of the overlay; consume it from the flake
+packages output (`pifiles.packages.<system>.pi-config`).
