@@ -81,6 +81,7 @@
               pi-custom-compaction
               pi-memory
               pi-boomerang
+              pi-web-access
               rpiv-ask-user-question
             ];
             noExtensions = true;
