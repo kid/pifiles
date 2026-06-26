@@ -85,6 +85,7 @@
               pi-web-access
               rpiv-ask-user-question
               pi-claude-auth
+              cortexkit-anthropic-auth
             ];
             noExtensions = true;
           };
