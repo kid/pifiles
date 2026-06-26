@@ -84,6 +84,7 @@
               pi-boomerang
               pi-web-access
               rpiv-ask-user-question
+              pi-claude-auth
             ];
             noExtensions = true;
           };

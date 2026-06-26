@@ -92,6 +92,7 @@ packages:
 - `piExtensions.pi-memory`
 - `piExtensions.rpiv-ask-user-question`
 - `piExtensions.pi-web-access`
+- `piExtensions.pi-claude-auth`
 
 Plus the flake-only `pi-config` (default package; combines upstream
 `pi` + `qmd` with a baked-in set of the extensions above).
