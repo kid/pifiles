@@ -1,8 +1,8 @@
 {
   "owner": "jayzeng",
   "repo": "pi-memory",
-  "version": "0.3.9",
-  "rev": "dc144f6a5583499e17cf561105864bf28583764c",
-  "narHash": "sha256-xxlTEEl7PPlKzG2pin+5LBgtHSqjtotyfOBJ9RDgi9A=",
-  "npmDepsHash": "sha256-dgo6/de2lbY3Iktf/lUyPkWH5NevRMB59SyjCG4xOnQ="
+  "version": "0.4.2",
+  "rev": "39e6b998a2279c8fad4a2c6c64e26828c1d6023e",
+  "narHash": "sha256-20hbBZ3loTvpun+CTUp2dRU77eKtSw4J2bS8rvsRGgM=",
+  "npmDepsHash": "sha256-xwjX9roTxYswC1IwjfnYxLjzwvaLMFerMPeVuhJofmY="
 }
