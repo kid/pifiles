@@ -1,8 +1,8 @@
 {
   "owner": "nicobailon",
   "repo": "pi-intercom",
-  "version": "0.10.0",
-  "rev": "0685e199b7003cddbb190352f1669fe23be8b9c2",
-  "narHash": "sha256-Agn80pLbZvlYQVbEdRxLFdN0ftmdDij0EsfN7gKt1i0=",
-  "npmDepsHash": "sha256-Fbi0r5xIGCXWdHSCsEpI0W0RMNoUTP27UqXpJhLeKc4="
+  "version": "0.10.1",
+  "rev": "30dcbdd134e3b3236e50e02c31d25093360fe3fc",
+  "narHash": "sha256-Z3tlF1vK7JDNGj+Jxr1w/3ksnwh1uYeLppFyfzO71qU=",
+  "npmDepsHash": "sha256-+OBfrovMl5wjmgA2B814FhBgKQVhXrgdoR3atBBR5Pg="
 }
