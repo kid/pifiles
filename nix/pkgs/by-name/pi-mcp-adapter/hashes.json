@@ -1,8 +1,8 @@
 {
   "owner": "nicobailon",
   "repo": "pi-mcp-adapter",
-  "version": "2.31.0",
-  "rev": "eca6e8e14746f2a093e5d3085ccc244832962d71",
-  "narHash": "sha256-6U856l2EmxcitE/MiiwgMd3YkMfAQVjbXJUdhgNrPMY=",
-  "npmDepsHash": "sha256-pPd5Kh9FoLKNeFUf9sONKBm8PBf4c2OYh1HW17PaVMI="
+  "version": "2.32.1",
+  "rev": "10a45367e033a32026987a75d6f401e37340c86f",
+  "narHash": "sha256-/NrC8cVEdhswKEQcuVugNSOCGJ3/c6k2Qg8o6hg0X14=",
+  "npmDepsHash": "sha256-jFFmMlul+PwRW1aHEKChcxZg0EJXg1Km2OVKs2sa1K8="
 }
