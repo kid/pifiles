@@ -1,8 +1,8 @@
 {
   "owner": "nicobailon",
   "repo": "pi-web-access",
-  "version": "0.28.0",
-  "rev": "e55f78a6cf28e2ba5013e14c3dd7bb5eef2ac7c5",
-  "narHash": "sha256-oPUUqlxPUUxOmt9ZrM1RnXynGwFi0hkHhug/jC4ZbVk=",
-  "npmDepsHash": "sha256-G0HGksDbwXeISaT450Fx/Edy2bzWta7RMfDnPGrMfHk="
+  "version": "0.29.0",
+  "rev": "192ac1875e3b8f88c78953dbc314949ec9fcaa27",
+  "narHash": "sha256-5YMwE44pyMmCapGt9kFLxT61Qg3OCzuJCIATRhMBv6M=",
+  "npmDepsHash": "sha256-4f/d/7nk7Xv5Tguxi1uuamD5NqH91Q6O0ky07EsI5GQ="
 }
