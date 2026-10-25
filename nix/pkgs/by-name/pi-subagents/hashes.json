@@ -1,8 +1,8 @@
 {
   "owner": "nicobailon",
   "repo": "pi-subagents",
-  "version": "0.81.0",
-  "rev": "1bc941363cb62fc23c94c5519364b03dc150be3e",
-  "narHash": "sha256-qK0lB1TKBWvFixp7kPikAdsxEtdP4g924GPy3+61wIw=",
-  "npmDepsHash": "sha256-xjniafSBnAiu1oVH1Wm003TDlhoMBp4+WBaolXR69J0="
+  "version": "0.82.1",
+  "rev": "35d45d98c2c28ae18b1ad6c25a70b0398fa0d075",
+  "narHash": "sha256-ZybTT6BmjK0Fw+DmuQ8WOoqkWDsrrob8JT6zOszc5TY=",
+  "npmDepsHash": "sha256-+Gv2lB41JqgAnUC4ijXLIpa8j4DSEigzs3u5TPY1jzE="
 }
