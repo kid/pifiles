@@ -1,8 +1,8 @@
 {
   "owner": "nicobailon",
   "repo": "pi-rewind-hook",
-  "version": "1.8.8",
-  "rev": "66f54a4dacaed4e8eaa781e1dee7e3d40401cf75",
-  "narHash": "sha256-fjvRo9dPl8lVsQ7/Qjk8QColFX2UiGJ3fwkeV24nDVY=",
-  "npmDepsHash": "sha256-s1817fFEAIhAF2YW7AF/1RFmgyXsGkaahRTbY9CbkWM="
+  "version": "1.8.9",
+  "rev": "221c0036f98ad4932a55b382aea2731c3707e421",
+  "narHash": "sha256-AouCTAW6RH+q20zmrzd4ugmrA2cpFzZMfl1CIVUU+L4=",
+  "npmDepsHash": "sha256-JKojyHwqe6ukL60oRSr4ogcYmLHTIJVnGhFPdz35Z3w="
 }
